@@ -1,7 +1,7 @@
 # LuaCMake
 MWE embed of Lua into a CMake project with a tiny demo
 
-Following [this guide](https://www.cs.usfca.edu/~galles/cs420/lecture/LuaLectures/LuaAndC.html), run the ```build.sh``` script to 
+Run the ```build.sh``` script to 
 observe the output 
 
 ```bash
@@ -26,3 +26,5 @@ target_link_libraries(test Lua)
 ```
 
 The only change from base Lua 5.4.4 is the removal of ```lua.c``` from ```vendored/lua-5.4.4/src/``` this allows your code to define an entry point. 
+
+[This is a decent guide to Lua 5/C++ intro guide](https://www.cs.usfca.edu/~galles/cs420/lecture/LuaLectures/LuaAndC.html)
