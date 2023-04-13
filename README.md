@@ -2,14 +2,72 @@
 MWE embed of Lua into a CMake project with a tiny demo
 
 Run the ```build.sh``` script to 
-observe the output 
+observe the outputs on each branch 
+
+## [Ex 1, main](https://github.com/Jerboa-app/Lua-Embed-CMake/tree/main) 
+
+### Simply call some Lua code
 
 ```bash
 $ ./build/test 
 5	3
 55
-
 ```
+
+Lua code
+
+```Lua
+function fib(n)
+   if n == 1 or n == 2 then
+      return 1,1
+   end
+   prev, prevPrev = fib(n-1)
+   return prev+prevPrev, prev
+end
+
+print(fib(5))
+print((fib(10)))
+```
+
+
+## [Ex 2, addFunctions](https://github.com/Jerboa-app/Lua-Embed-CMake/tree/addFunctions) 
+
+### Register a custom "C" library, call it from Lua
+
+```bash
+$ ./build/test 
+2.5
+```
+
+Lua code (userLib is a custom "C" library)
+
+```Lua
+a = userLib.avg(1,2,3,4)
+print(a)
+```
+
+## [Ex 3, addMemberFunction](https://github.com/Jerboa-app/Lua-Embed-CMake/tree/addMemberFunction) 
+
+### Register a custom "C" library, encapsulating a C++ class's member functions, call them from Lua
+
+```bash
+$ ./build/test 
+6.0
+0.0
+```
+
+Lua code (userLib encapsulate a C++ class's member functions)
+
+```Lua
+userLib.pushValues(1,2,3)
+a = userLib.sumValues()
+print(a)
+userLib.clearValues()
+b = userLib.sumValues()
+print(b)
+```
+
+## Building (CMake)
 
 Lua is built using the CMake incantations
 
