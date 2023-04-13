@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <iostream>
-
+#include <vector>
 extern "C"
 {
 #include <lua.h>
@@ -8,59 +8,69 @@ extern "C"
 #include <lualib.h>
 }
 
-// int prod(lua_State * lua)
-// {
-//     int n = lua_gettop(lua);
-//     lua_Number p = 1.0;
-    
-//     for (unsigned i = 1; i <= n; i++)
-//     {
-//         if (!lua_isnumber(lua,i))
-//         {
-//             lua_pushliteral(lua,"non numeric argument");
-//             lua_error(lua);
-//         }
-//         p *= lua_tonumber(lua,i);
-//     }
-//     lua_pushnumber(lua,p);
-//     std::cout << "prod\n";
-//     return 1;
-// }
-
-static int average(lua_State *L)
+class Accumulator
 {
-	/* get number of arguments */
-	int n = lua_gettop(L);
-	double sum = 0;
-	int i;
+	public:
 
-	/* loop through each argument */
-	for (i = 1; i <= n; i++)
-	{
-		/* total the arguments */
-		sum += lua_tonumber(L, i);
-	}
+		Accumulator() = default;
 
-	/* push the average */
-	lua_pushnumber(L, sum / n);
+		int lua_sumValues(lua_State * lua)
+		{
+			double sum = 0.0;
 
-	/* push the sum */
-	lua_pushnumber(L, sum);
+			for (unsigned i = 0; i < values.size(); i++)
+			{
+				sum += values[i];
+			}
 
-	/* return the number of results */
-	return 2;
+			lua_pushnumber(lua, sum);
+
+			return 1;
+		}
+
+		int lua_pushValues(lua_State * lua)
+		{
+			int n = lua_gettop(lua);
+			for (unsigned i = 1; i <= n; i++)
+			{
+				values.push_back(lua_tonumber(lua,i));
+			}
+			return 0;
+		}
+
+		int lua_clearValues(lua_State * lua)
+		{
+			values.clear();
+			return 0;
+		}
+
+	private:
+
+	std::vector<double> values;
+
+};
+
+typedef int (Accumulator::*member)(lua_State * lua);
+
+template <member function>
+int dispatch(lua_State * lua)
+{
+	Accumulator * ptr = *static_cast<Accumulator**>(lua_getextraspace(lua));
+	return ((*ptr).*function)(lua);
 }
 
-const struct luaL_Reg userLib[] = 
+const luaL_Reg userLib[] = 
 {
-    {"avg",average},
-    {NULL, NULL}
+	{"sumValues", &dispatch<&Accumulator::lua_sumValues>},
+	{"pushValues",&dispatch<&Accumulator::lua_pushValues>},
+	{"clearValues",&dispatch<&Accumulator::lua_clearValues>},
+	{NULL,NULL}
 };
 
 int load_userLib(lua_State * lua)
 {
-    luaL_newlib(lua,userLib);
-    return 1;
+	luaL_newlib(lua,userLib);
+	return 1;
 }
 
 int main(int argc, char ** argv) 
@@ -69,8 +79,12 @@ int main(int argc, char ** argv)
 
     luaL_openlibs(lua);
 
-    luaL_requiref(lua, "userLib", load_userLib , 1);
+	Accumulator acc;
+
+	*static_cast<Accumulator**>(lua_getextraspace(lua)) = &acc;
     
+	luaL_requiref(lua,"userLib",load_userLib,1);
+
     luaL_dofile(lua,"test.lua");
 
     lua_close(lua); 
