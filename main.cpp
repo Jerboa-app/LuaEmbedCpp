@@ -50,6 +50,10 @@ class Accumulator
 
 };
 
+/* 
+	refer to https://stackoverflow.com/questions/32416388/how-to-register-member-function-to-lua-without-lua-bind-in-c
+*/
+
 typedef int (Accumulator::*member)(lua_State * lua);
 
 template <member function>
