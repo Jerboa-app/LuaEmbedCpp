@@ -8,6 +8,19 @@ extern "C"
 #include <lualib.h>
 }
 
+class Foo 
+{
+	public:
+		Foo() = default;
+		int lua_fooSay(lua_State * lua)
+		{
+			std::cout << name << "\n";
+			return 0;
+		}
+	private:
+	const char * name = "Class Foo here!";
+};
+
 class Accumulator
 {
 	public:
@@ -54,20 +67,38 @@ class Accumulator
 	refer to https://stackoverflow.com/questions/32416388/how-to-register-member-function-to-lua-without-lua-bind-in-c
 */
 
-typedef int (Accumulator::*member)(lua_State * lua);
-
-template <member function>
-int dispatch(lua_State * lua)
+struct LuaExtraSpace
 {
-	Accumulator * ptr = *static_cast<Accumulator**>(lua_getextraspace(lua));
-	return ((*ptr).*function)(lua);
+	Accumulator * acc;
+	Foo * foo;
+};
+
+typedef int (Accumulator::*AccumulatorMember)(lua_State * lua);
+
+template <AccumulatorMember function>
+int dispatchAccumulator(lua_State * lua)
+{
+	LuaExtraSpace * ptr = *static_cast<LuaExtraSpace**>(lua_getextraspace(lua));
+	Accumulator * acc = ptr->acc;
+	return ((*acc).*function)(lua);
+}
+
+typedef int (Foo::*FooMember)(lua_State * lua);
+
+template <FooMember function>
+int dispatchFoo(lua_State * lua)
+{
+	LuaExtraSpace * ptr = *static_cast<LuaExtraSpace**>(lua_getextraspace(lua));
+	Foo * foo = ptr->foo;
+	return ((*foo).*function)(lua);
 }
 
 const luaL_Reg userLib[] = 
 {
-	{"sumValues", &dispatch<&Accumulator::lua_sumValues>},
-	{"pushValues",&dispatch<&Accumulator::lua_pushValues>},
-	{"clearValues",&dispatch<&Accumulator::lua_clearValues>},
+	{"sumValues", &dispatchAccumulator<&Accumulator::lua_sumValues>},
+	{"pushValues",&dispatchAccumulator<&Accumulator::lua_pushValues>},
+	{"clearValues",&dispatchAccumulator<&Accumulator::lua_clearValues>},
+	{"fooSay",&dispatchFoo<&Foo::lua_fooSay>},
 	{NULL,NULL}
 };
 
@@ -84,8 +115,14 @@ int main(int argc, char ** argv)
     luaL_openlibs(lua);
 
 	Accumulator acc;
+	Foo foo;
 
-	*static_cast<Accumulator**>(lua_getextraspace(lua)) = &acc;
+	LuaExtraSpace luaStorage;
+
+	luaStorage.acc = &acc;
+	luaStorage.foo = &foo;
+
+	*static_cast<LuaExtraSpace**>(lua_getextraspace(lua)) = &luaStorage;
     
 	luaL_requiref(lua,"userLib",load_userLib,1);
 
