@@ -50,6 +50,8 @@ print(a)
 
 ### Register a custom "C" library, encapsulating a C++ class's member functions, call them from Lua
 
+refer to https://stackoverflow.com/questions/32416388/how-to-register-member-function-to-lua-without-lua-bind-in-c
+
 ```bash
 $ ./build/test 
 6.0
@@ -65,6 +67,32 @@ print(a)
 userLib.clearValues()
 b = userLib.sumValues()
 print(b)
+```
+
+## [Ex 4, multiClasses]([https://github.com/Jerboa-app/Lua-Embed-CMake/tree/addMemberFunction](https://github.com/Jerboa-app/Lua-Embed-CMake/tree/multiClasses)) 
+
+### Register a custom "C" library, encapsulating *two* C++ classes' member functions, call them from Lua
+
+Extends the previous example by wrapping the class pointers into a struct. Then setting Lua's extra space as that struct
+
+```bash
+$ ./build/test 
+6.0
+0.0
+Class Foo here!
+```
+
+Lua code (userLib encapsulate a C++ class's member functions)
+
+```Lua
+userLib.pushValues(1,2,3)
+a = userLib.sumValues()
+print(a)
+userLib.clearValues()
+b = userLib.sumValues()
+print(b)
+
+userLib.fooSay()
 ```
 
 ## Building (CMake)
