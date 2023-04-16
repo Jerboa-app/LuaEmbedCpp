@@ -69,7 +69,7 @@ b = userLib.sumValues()
 print(b)
 ```
 
-## [Ex 4, multiClasses]([https://github.com/Jerboa-app/Lua-Embed-CMake/tree/addMemberFunction](https://github.com/Jerboa-app/Lua-Embed-CMake/tree/multiClasses)) 
+## [Ex 4, multiClasses](https://github.com/Jerboa-app/Lua-Embed-CMake/tree/multiClasses)
 
 ### Register a custom "C" library, encapsulating *two* C++ classes' member functions, call them from Lua
 
